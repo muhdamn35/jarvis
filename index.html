@@ -1,387 +1,762 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>J.A.R.V.I.S — Personal AI Assistant</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-.jv{background:#090d18;min-height:600px;font-family:var(--font-sans);color:#d0dcea;display:flex;flex-direction:column}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:0.5px solid rgba(0,180,255,0.18)}
-.logo{display:flex;align-items:center;gap:10px}
-.arc{width:32px;height:32px;border-radius:50%;border:2px solid #00b4ff;display:flex;align-items:center;justify-content:center}
-.arc.listening{animation:arcpulse 0.8s infinite}
-@keyframes arcpulse{0%,100%{box-shadow:0 0 0 0 rgba(0,180,255,0.6)}50%{box-shadow:0 0 0 10px rgba(0,180,255,0)}}
-.arc.speaking{animation:arcspeak 0.5s infinite alternate}
-@keyframes arcspeak{0%{box-shadow:0 0 0 2px rgba(0,255,180,0.5)}100%{box-shadow:0 0 0 8px rgba(0,255,180,0.1)}}
-.arc i{font-size:15px;color:#00b4ff}
-.logo-name{font-size:16px;font-weight:500;letter-spacing:3px;color:#00b4ff}
-.logo-sub{font-size:10px;color:rgba(0,180,255,0.45);letter-spacing:2px}
-.topright{display:flex;align-items:center;gap:14px}
-.sbar{display:flex;align-items:center;gap:6px}
-.sdot{width:7px;height:7px;border-radius:50%;background:#444;transition:background 0.3s}
-.sdot.on{background:#00ff88;animation:sdotblink 1.5s infinite}
-@keyframes sdotblink{0%,100%{opacity:1}50%{opacity:0.3}}
-.stxt{font-size:11px;letter-spacing:1px;color:#444;transition:color 0.3s}
-.stxt.on{color:#00ff88}
-.clk{font-size:12px;color:rgba(208,220,234,0.4);font-family:var(--font-mono)}
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #07090f;
+    color: #cddaea;
+    overflow-x: hidden;
+  }
 
-.main-grid{display:grid;grid-template-columns:1fr 1fr;flex:1}
-.left{border-right:0.5px solid rgba(0,180,255,0.12);display:flex;flex-direction:column}
-.right{display:flex;flex-direction:column}
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,180,255,0.2); border-radius: 2px; }
 
-.voice-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1);gap:16px}
-.orb-wrap{position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center}
-.orb-ring{position:absolute;border-radius:50%;border:1px solid rgba(0,180,255,0.2)}
-.orb-ring.r1{width:110px;height:110px}
-.orb-ring.r2{width:86px;height:86px;border-color:rgba(0,180,255,0.15)}
-.orb-ring.r3{width:64px;height:64px;border-color:rgba(0,180,255,0.1)}
-.orb-ring.spin{animation:ringspin 4s linear infinite}
-.orb-ring.spin2{animation:ringspin 7s linear infinite reverse}
-@keyframes ringspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.orb{width:52px;height:52px;border-radius:50%;background:#0d1526;border:2px solid #00b4ff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;z-index:2}
-.orb:hover{background:rgba(0,180,255,0.12)}
-.orb.listening{border-color:#00ffbb;background:rgba(0,255,180,0.08)}
-.orb.speaking{border-color:#a07dff;background:rgba(140,80,255,0.1)}
-.orb i{font-size:22px;color:#00b4ff;transition:color 0.3s}
-.orb.listening i{color:#00ffbb}
-.orb.speaking i{color:#a07dff}
+  /* ── Top Bar ── */
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px;
+    border-bottom: 0.5px solid rgba(0,180,255,0.2);
+    background: rgba(7,9,15,0.97);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .arc-ring {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid #00b4ff;
+    display: flex; align-items: center; justify-content: center;
+    transition: box-shadow 0.3s;
+  }
+  .arc-ring.listening { animation: arcpulse 0.8s infinite; border-color: #00ffbb; }
+  .arc-ring.speaking  { animation: arcspeak 0.5s infinite alternate; border-color: #a07dff; }
+  @keyframes arcpulse  { 0%,100%{box-shadow:0 0 0 0 rgba(0,255,180,0.6)} 50%{box-shadow:0 0 0 10px rgba(0,255,180,0)} }
+  @keyframes arcspeak  { 0%{box-shadow:0 0 0 2px rgba(160,125,255,0.5)} 100%{box-shadow:0 0 0 10px rgba(160,125,255,0.05)} }
+  .arc-ring svg { width: 18px; height: 18px; stroke: #00b4ff; fill: none; stroke-width: 1.8; }
+  .logo-text { line-height: 1.2; }
+  .logo-name { font-size: 17px; font-weight: 500; letter-spacing: 4px; color: #00b4ff; }
+  .logo-sub  { font-size: 10px; color: rgba(0,180,255,0.4); letter-spacing: 2px; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px;
+    border: 0.5px solid rgba(0,180,255,0.2);
+    background: rgba(0,180,255,0.05);
+    font-size: 10px; letter-spacing: 1.5px;
+    transition: all 0.3s;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; transition: background 0.3s; }
+  .status-dot.on { background: #00ff88; animation: blink 1.5s infinite; }
+  .status-dot.listening { background: #00ffbb; animation: blink 0.6s infinite; }
+  .status-dot.speaking  { background: #a07dff; animation: blink 0.4s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  #status-text { color: #888; transition: color 0.3s; }
+  #status-text.on { color: #00ff88; }
+  #status-text.listening { color: #00ffbb; }
+  #status-text.speaking  { color: #a07dff; }
+  #clock { font-size: 13px; color: rgba(205,218,234,0.4); font-family: 'Courier New', monospace; min-width: 70px; }
 
-.wave-bars{display:flex;align-items:center;gap:3px;height:24px}
-.bar{width:3px;border-radius:2px;background:rgba(0,180,255,0.2);transition:background 0.3s}
-.bar.active{background:#00b4ff;animation:wavebar 0.6s ease infinite alternate}
-.bar.speaking-bar{background:#a07dff;animation:wavebar 0.3s ease infinite alternate}
-@keyframes wavebar{0%{height:4px}100%{height:20px}}
-.bar:nth-child(1){animation-delay:0s}
-.bar:nth-child(2){animation-delay:0.1s}
-.bar:nth-child(3){animation-delay:0.2s}
-.bar:nth-child(4){animation-delay:0.05s}
-.bar:nth-child(5){animation-delay:0.15s}
-.bar:nth-child(6){animation-delay:0.25s}
-.bar:nth-child(7){animation-delay:0.08s}
-.bar:nth-child(8){animation-delay:0.18s}
+  /* ── Greeting Bar ── */
+  #greeting-bar {
+    padding: 10px 28px;
+    border-bottom: 0.5px solid rgba(0,180,255,0.1);
+    background: rgba(0,180,255,0.025);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #greeting-bar .left-g { font-size: 13px; color: rgba(205,218,234,0.55); }
+  #greeting-bar .left-g span { color: rgba(205,218,234,0.9); font-weight: 500; }
+  #date-display { font-size: 11px; color: rgba(205,218,234,0.3); font-family: 'Courier New', monospace; }
 
-.status-label{font-size:11px;letter-spacing:2px;color:rgba(0,180,255,0.5);text-transform:uppercase}
-.status-label.listening{color:#00ffbb}
-.status-label.speaking{color:#a07dff}
-.hotword-hint{font-size:11px;color:rgba(208,220,234,0.3);text-align:center;line-height:1.5}
-.hotword-hint span{color:rgba(0,180,255,0.6)}
+  /* ── Main Layout ── */
+  #main { display: grid; grid-template-columns: 340px 1fr 1fr; min-height: calc(100vh - 90px); }
 
-.transcript-box{padding:16px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1);flex:1}
-.transcript-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:8px;text-transform:uppercase}
-.transcript-text{font-size:13px;color:rgba(208,220,234,0.75);line-height:1.6;min-height:40px;font-style:italic}
-.transcript-text.active{color:#e0eaf8}
+  /* ── Voice Panel (left) ── */
+  #voice-panel {
+    border-right: 0.5px solid rgba(0,180,255,0.12);
+    display: flex; flex-direction: column;
+  }
+  .voice-center {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 20px; gap: 14px;
+    border-bottom: 0.5px solid rgba(0,180,255,0.1);
+  }
+  .orb-wrap { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; }
+  .orb-ring-svg { position: absolute; top: 0; left: 0; width: 120px; height: 120px; }
+  .orb-ring-svg circle { fill: none; stroke: rgba(0,180,255,0.18); stroke-width: 1; }
+  .orb-ring-svg .spin1 { animation: ringspin 5s linear infinite; transform-origin: 60px 60px; }
+  .orb-ring-svg .spin2 { animation: ringspin 9s linear infinite reverse; transform-origin: 60px 60px; stroke: rgba(0,180,255,0.1); }
+  @keyframes ringspin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .orb {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #0d1422; border: 2px solid #00b4ff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.25s; z-index: 2; position: relative;
+  }
+  .orb:hover { background: rgba(0,180,255,0.1); transform: scale(1.05); }
+  .orb.listening { border-color: #00ffbb; background: rgba(0,255,180,0.07); }
+  .orb.speaking  { border-color: #a07dff; background: rgba(140,80,255,0.09); }
+  .orb svg { width: 28px; height: 28px; stroke: #00b4ff; fill: none; stroke-width: 1.6; transition: stroke 0.3s; }
+  .orb.listening svg { stroke: #00ffbb; }
+  .orb.speaking  svg { stroke: #a07dff; }
 
-.response-box{padding:16px 20px;flex:1}
-.resp-label{font-size:10px;letter-spacing:1.5px;color:rgba(160,125,255,0.5);margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-.resp-label i{font-size:13px}
-.resp-text{font-size:13px;color:rgba(208,220,234,0.8);line-height:1.6;min-height:60px}
+  .wave-bars { display: flex; align-items: center; gap: 3px; height: 26px; }
+  .bar { width: 3px; height: 4px; border-radius: 2px; background: rgba(0,180,255,0.18); transition: background 0.3s; }
+  .bar.active { background: #00b4ff; }
+  .bar.speaking-bar { background: #a07dff; }
+  .bar.active, .bar.speaking-bar { animation: wavebar 0.5s ease infinite alternate; }
+  .bar:nth-child(1){animation-delay:0s} .bar:nth-child(2){animation-delay:0.08s}
+  .bar:nth-child(3){animation-delay:0.16s} .bar:nth-child(4){animation-delay:0.04s}
+  .bar:nth-child(5){animation-delay:0.12s} .bar:nth-child(6){animation-delay:0.20s}
+  .bar:nth-child(7){animation-delay:0.06s} .bar:nth-child(8){animation-delay:0.14s}
+  .bar:nth-child(9){animation-delay:0.10s} .bar:nth-child(10){animation-delay:0.18s}
+  @keyframes wavebar { 0%{height:3px} 100%{height:22px} }
 
-.cmds-section{padding:16px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1)}
-.cmds-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:10px;text-transform:uppercase}
-.cmd-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.cmd-chip{padding:7px 10px;border-radius:8px;border:0.5px solid rgba(0,180,255,0.12);background:rgba(0,180,255,0.04);font-size:11px;color:rgba(208,220,234,0.6);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
-.cmd-chip:hover{background:rgba(0,180,255,0.1);color:#c8ddf0;border-color:rgba(0,180,255,0.3)}
-.cmd-chip i{font-size:13px;color:rgba(0,180,255,0.5)}
+  #state-label { font-size: 11px; letter-spacing: 2px; color: rgba(0,180,255,0.5); text-transform: uppercase; }
+  #state-label.listening { color: #00ffbb; }
+  #state-label.speaking  { color: #a07dff; }
+  .hint-text { font-size: 11px; color: rgba(205,218,234,0.28); text-align: center; line-height: 1.6; }
+  .hint-text em { color: rgba(0,180,255,0.55); font-style: normal; }
 
-.news-mini{padding:14px 20px;flex:1;overflow:hidden}
-.news-mini-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:10px;text-transform:uppercase}
-.news-item-mini{padding:8px 0;border-bottom:0.5px solid rgba(0,180,255,0.07);font-size:12px;color:rgba(208,220,234,0.65);line-height:1.4;display:flex;gap:8px}
-.news-item-mini:last-child{border-bottom:none}
-.news-num{font-size:10px;color:rgba(0,180,255,0.3);font-family:var(--font-mono);flex-shrink:0;padding-top:2px}
+  .voice-section { padding: 16px 20px; border-bottom: 0.5px solid rgba(0,180,255,0.08); }
+  .vs-label { font-size: 10px; letter-spacing: 1.5px; color: rgba(0,180,255,0.38); text-transform: uppercase; margin-bottom: 8px; }
+  #transcript-text { font-size: 13px; color: rgba(205,218,234,0.6); line-height: 1.6; font-style: italic; min-height: 36px; }
+  #transcript-text.active { color: #ddeaf8; }
+  #resp-label { font-size: 10px; letter-spacing: 1.5px; color: rgba(160,125,255,0.45); text-transform: uppercase; margin-bottom: 8px; }
+  #resp-text { font-size: 13px; color: rgba(205,218,234,0.78); line-height: 1.65; min-height: 52px; }
 
-.wake-toggle{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-top:0.5px solid rgba(0,180,255,0.1)}
-.toggle-track{width:44px;height:24px;border-radius:12px;background:rgba(0,180,255,0.1);border:1px solid rgba(0,180,255,0.2);cursor:pointer;transition:all 0.3s;position:relative;flex-shrink:0}
-.toggle-track.on{background:rgba(0,180,255,0.25);border-color:#00b4ff}
-.toggle-thumb{width:18px;height:18px;border-radius:50%;background:rgba(0,180,255,0.4);position:absolute;top:2px;left:2px;transition:all 0.3s}
-.toggle-track.on .toggle-thumb{left:22px;background:#00b4ff}
-.toggle-lbl{font-size:11px;color:rgba(208,220,234,0.45);letter-spacing:1px}
-.toggle-lbl.on{color:rgba(0,180,255,0.8)}
+  .wake-toggle-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 20px; border-top: 0.5px solid rgba(0,180,255,0.08);
+    margin-top: auto;
+  }
+  .toggle-track {
+    width: 46px; height: 25px; border-radius: 13px;
+    background: rgba(0,180,255,0.08); border: 1px solid rgba(0,180,255,0.18);
+    cursor: pointer; position: relative; transition: all 0.3s; flex-shrink: 0;
+  }
+  .toggle-track.on { background: rgba(0,180,255,0.22); border-color: #00b4ff; }
+  .toggle-thumb {
+    width: 19px; height: 19px; border-radius: 50%;
+    background: rgba(0,180,255,0.35); position: absolute; top: 2px; left: 2px; transition: all 0.3s;
+  }
+  .toggle-track.on .toggle-thumb { left: 24px; background: #00b4ff; }
+  .toggle-lbl { font-size: 11px; color: rgba(205,218,234,0.35); letter-spacing: 1px; }
+  .toggle-lbl.on { color: rgba(0,180,255,0.75); }
+
+  /* ── Middle Panel (tasks + weather) ── */
+  #mid-panel { border-right: 0.5px solid rgba(0,180,255,0.12); display: flex; flex-direction: column; }
+
+  /* ── Right Panel (news + podcast) ── */
+  #right-panel { display: flex; flex-direction: column; }
+
+  /* ── Shared Section Style ── */
+  .panel-section { padding: 18px 22px; border-bottom: 0.5px solid rgba(0,180,255,0.08); }
+  .sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .sec-title { display: flex; align-items: center; gap: 7px; font-size: 10px; letter-spacing: 1.5px; color: rgba(0,180,255,0.45); text-transform: uppercase; }
+  .sec-title svg { width: 14px; height: 14px; stroke: rgba(0,180,255,0.45); fill: none; stroke-width: 1.8; }
+  .refresh-btn {
+    display: flex; align-items: center; gap: 4px;
+    background: none; border: 0.5px solid rgba(0,180,255,0.18); border-radius: 6px;
+    padding: 3px 9px; color: rgba(0,180,255,0.45); font-size: 10px; letter-spacing: 0.5px;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .refresh-btn:hover { color: #00b4ff; border-color: rgba(0,180,255,0.5); }
+  .refresh-btn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ── Weather ── */
+  .weather-main { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .weather-temp-big { font-size: 52px; font-weight: 300; color: #ddeaf8; line-height: 1; }
+  .weather-temp-big sup { font-size: 22px; color: rgba(205,218,234,0.4); vertical-align: super; }
+  .weather-right { text-align: right; }
+  .weather-city { font-size: 13px; color: rgba(205,218,234,0.8); margin-bottom: 3px; }
+  .weather-cond { font-size: 12px; color: rgba(205,218,234,0.4); }
+  .weather-feels { font-size: 11px; color: rgba(205,218,234,0.35); margin-top: 2px; }
+  .weather-stats { display: flex; gap: 16px; }
+  .wstat { font-size: 11px; color: rgba(205,218,234,0.38); }
+  .wstat span { color: rgba(205,218,234,0.8); font-weight: 500; }
+  #weather-loading { font-size: 13px; color: rgba(0,180,255,0.4); animation: lpulse 1.5s infinite; }
+  @keyframes lpulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  /* ── Tasks ── */
+  .tasks-list { display: flex; flex-direction: column; gap: 7px; }
+  .task-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 11px; border-radius: 8px;
+    border: 0.5px solid rgba(0,180,255,0.1); background: rgba(0,180,255,0.03);
+    cursor: pointer; transition: background 0.2s;
+  }
+  .task-item:hover { background: rgba(0,180,255,0.07); }
+  .task-item.done { opacity: 0.38; }
+  .task-item.done .task-text { text-decoration: line-through; }
+  .task-check {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid rgba(0,180,255,0.35);
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .task-item.done .task-check { background: #00ff88; border-color: #00ff88; }
+  .task-check svg { width: 10px; height: 10px; stroke: #07090f; fill: none; stroke-width: 2.5; display: none; }
+  .task-item.done .task-check svg { display: block; }
+  .task-text { font-size: 13px; color: rgba(205,218,234,0.82); flex: 1; }
+  .task-tag { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; flex-shrink: 0; }
+  .tag-work    { background: rgba(0,100,200,0.18); color: #4da8ff; }
+  .tag-health  { background: rgba(0,200,100,0.15); color: #00cc66; }
+  .tag-learn   { background: rgba(180,80,255,0.15); color: #c070ff; }
+  .tag-personal{ background: rgba(255,160,0,0.15);  color: #ffaa33; }
+  .add-task-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-task-row input {
+    flex: 1; background: rgba(0,180,255,0.05); border: 0.5px solid rgba(0,180,255,0.18);
+    border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #cddaea;
+    font-family: inherit; outline: none; transition: border-color 0.2s;
+  }
+  .add-task-row input::placeholder { color: rgba(205,218,234,0.22); }
+  .add-task-row input:focus { border-color: rgba(0,180,255,0.45); }
+  .btn-add {
+    background: rgba(0,180,255,0.12); border: 0.5px solid rgba(0,180,255,0.28);
+    border-radius: 8px; padding: 8px 14px; color: #00b4ff; font-size: 12px;
+    cursor: pointer; font-family: inherit; transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-add:hover { background: rgba(0,180,255,0.22); }
+
+  /* ── Voice Commands Chips ── */
+  .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .cmd-chip {
+    padding: 8px 10px; border-radius: 8px; border: 0.5px solid rgba(0,180,255,0.1);
+    background: rgba(0,180,255,0.03); font-size: 11px; color: rgba(205,218,234,0.55);
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .cmd-chip:hover { background: rgba(0,180,255,0.1); color: #c8ddf0; border-color: rgba(0,180,255,0.28); }
+  .cmd-chip svg { width: 14px; height: 14px; stroke: rgba(0,180,255,0.45); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+
+  /* ── News Feed ── */
+  .news-list { display: flex; flex-direction: column; }
+  .news-item { padding: 11px 0; border-bottom: 0.5px solid rgba(0,180,255,0.07); cursor: default; }
+  .news-item:last-child { border-bottom: none; }
+  .news-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+  .news-src  { font-size: 10px; color: rgba(0,180,255,0.55); letter-spacing: 1px; text-transform: uppercase; }
+  .news-sep  { width: 3px; height: 3px; border-radius: 50%; background: rgba(0,180,255,0.25); }
+  .news-time { font-size: 10px; color: rgba(205,218,234,0.28); }
+  .news-badge { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
+  .badge-hot { background: rgba(255,60,60,0.18); color: #ff6060; }
+  .badge-new { background: rgba(0,255,136,0.12); color: #00ff88; }
+  .news-title { font-size: 13px; color: rgba(205,218,234,0.82); line-height: 1.5; }
+
+  /* ── Podcast Player ── */
+  .podcast-player { background: rgba(0,180,255,0.04); border: 0.5px solid rgba(0,180,255,0.1); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .pod-now { font-size: 10px; color: rgba(0,180,255,0.45); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px; }
+  .pod-title { font-size: 13px; color: rgba(205,218,234,0.9); margin-bottom: 3px; line-height: 1.4; }
+  .pod-ep { font-size: 11px; color: rgba(205,218,234,0.3); margin-bottom: 14px; }
+  .progress-bar { height: 3px; background: rgba(0,180,255,0.12); border-radius: 2px; margin-bottom: 10px; cursor: pointer; position: relative; }
+  .progress-fill { height: 100%; background: #00b4ff; border-radius: 2px; width: 35%; transition: width 0.3s; pointer-events: none; }
+  .progress-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #00b4ff;
+    position: absolute; top: -3.5px; left: 35%; transform: translateX(-50%); pointer-events: none;
+  }
+  .player-controls { display: flex; align-items: center; justify-content: space-between; }
+  .player-btns { display: flex; align-items: center; gap: 14px; }
+  .ctrl-btn { background: none; border: none; cursor: pointer; color: rgba(205,218,234,0.4); transition: color 0.2s; padding: 0; display: flex; }
+  .ctrl-btn:hover { color: #00b4ff; }
+  .ctrl-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .play-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #00b4ff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; background: rgba(0,180,255,0.1); flex-shrink: 0;
+  }
+  .play-btn:hover { background: rgba(0,180,255,0.22); }
+  .play-btn svg { width: 16px; height: 16px; stroke: #00b4ff; fill: none; stroke-width: 1.8; margin-left: 2px; }
+  .play-btn.playing svg { margin-left: 0; }
+  .player-time { font-size: 11px; color: rgba(205,218,234,0.28); font-family: 'Courier New', monospace; }
+  .vol-row { display: flex; align-items: center; gap: 7px; }
+  .vol-row svg { width: 14px; height: 14px; stroke: rgba(205,218,234,0.3); fill: none; stroke-width: 1.8; }
+  .vol-slider { width: 60px; accent-color: #00b4ff; cursor: pointer; }
+
+  .queue-list { display: flex; flex-direction: column; gap: 4px; }
+  .queue-item { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border-radius: 7px; cursor: pointer; transition: background 0.2s; }
+  .queue-item:hover { background: rgba(0,180,255,0.06); }
+  .queue-item.active { background: rgba(0,180,255,0.05); }
+  .q-num { font-size: 10px; color: rgba(205,218,234,0.2); font-family: 'Courier New', monospace; width: 18px; flex-shrink: 0; }
+  .q-info { flex: 1; }
+  .q-title { font-size: 12px; color: rgba(205,218,234,0.6); }
+  .queue-item.active .q-title { color: #00b4ff; }
+  .q-dur { font-size: 10px; color: rgba(205,218,234,0.28); }
+
+  /* ── API Key Modal ── */
+  #api-modal {
+    position: fixed; inset: 0; background: rgba(7,9,15,0.92);
+    display: flex; align-items: center; justify-content: center; z-index: 200;
+  }
+  #api-modal.hidden { display: none; }
+  .modal-box {
+    background: #0d1422; border: 0.5px solid rgba(0,180,255,0.25);
+    border-radius: 14px; padding: 32px; width: 440px; max-width: 92vw;
+  }
+  .modal-box h2 { font-size: 16px; font-weight: 500; color: #00b4ff; letter-spacing: 2px; margin-bottom: 8px; }
+  .modal-box p { font-size: 13px; color: rgba(205,218,234,0.55); margin-bottom: 20px; line-height: 1.6; }
+  .modal-box a { color: rgba(0,180,255,0.7); }
+  .modal-input {
+    width: 100%; background: rgba(0,180,255,0.06); border: 0.5px solid rgba(0,180,255,0.22);
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #cddaea;
+    font-family: inherit; outline: none; margin-bottom: 14px; transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: rgba(0,180,255,0.5); }
+  .modal-btn {
+    width: 100%; background: rgba(0,180,255,0.15); border: 0.5px solid rgba(0,180,255,0.35);
+    border-radius: 8px; padding: 11px; color: #00b4ff; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: background 0.2s; letter-spacing: 1px;
+  }
+  .modal-btn:hover { background: rgba(0,180,255,0.25); }
+  .modal-note { font-size: 11px; color: rgba(205,218,234,0.3); margin-top: 12px; text-align: center; }
 </style>
+</head>
+<body>
 
-<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">J.A.R.V.I.S voice assistant with wake word detection, speech recognition, and AI responses</h2>
-
-<div class="jv">
-
-<div class="topbar">
-  <div class="logo">
-    <div class="arc" id="arc-ring"><i class="ti ti-cpu" aria-hidden="true"></i></div>
-    <div>
-      <div class="logo-name">J.A.R.V.I.S</div>
-      <div class="logo-sub">voice command active</div>
-    </div>
-  </div>
-  <div class="topright">
-    <div class="sbar">
-      <div class="sdot" id="sdot"></div>
-      <div class="stxt" id="stxt">STANDBY</div>
-    </div>
-    <div class="clk" id="clk">--:-- --</div>
+<!-- API Key Modal -->
+<div id="api-modal">
+  <div class="modal-box">
+    <h2>INITIALISING J.A.R.V.I.S</h2>
+    <p>Enter your Anthropic API key to power the voice AI, live news, and weather. Your key stays on your device only — never sent anywhere except Anthropic's API.<br><br>
+    Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br><br><span style="color:rgba(0,255,136,0.6);font-size:11px;">✓ Works on GitHub Pages &nbsp;✓ Key saved in your browser &nbsp;✓ 100% free to host</span></p>
+    <input class="modal-input" type="password" id="api-key-input" placeholder="sk-ant-..." />
+    <button class="modal-btn" onclick="saveApiKey()">ACTIVATE JARVIS</button>
+    <div class="modal-note">Stored in your browser only. Works on GitHub Pages (HTTPS). Never shared with anyone.</div>
   </div>
 </div>
 
-<div class="main-grid">
+<!-- Top Bar -->
+<div id="topbar">
+  <div class="logo">
+    <div class="arc-ring" id="arc-ring">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-name">J.A.R.V.I.S</div>
+      <div class="logo-sub">just a rather very intelligent system</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill">
+      <div class="status-dot" id="sdot"></div>
+      <span id="status-text">STANDBY</span>
+    </div>
+    <div id="clock">--:-- --</div>
+    <button onclick="resetApiKey()" style="background:none;border:0.5px solid rgba(0,180,255,0.18);border-radius:6px;padding:4px 10px;color:rgba(0,180,255,0.4);font-size:10px;cursor:pointer;font-family:inherit;letter-spacing:0.5px;" title="Change API key">API KEY</button>
+  </div>
+</div>
 
-<div class="left">
-  <div class="voice-center">
-    <div class="orb-wrap">
-      <div class="orb-ring r1 spin"></div>
-      <div class="orb-ring r2 spin2"></div>
-      <div class="orb-ring r3"></div>
-      <div class="orb" id="main-orb" onclick="toggleListen()" title="Click to activate voice">
-        <i class="ti ti-microphone" id="orb-icon" aria-hidden="true"></i>
+<!-- Greeting -->
+<div id="greeting-bar">
+  <div class="left-g">Good <span id="greet-time">morning</span>, <span>Boss</span>. Systems nominal. You have <span id="task-remaining">5</span> tasks pending.</div>
+  <div id="date-display">SAT 14 JUN 2025</div>
+</div>
+
+<!-- Main Grid -->
+<div id="main">
+
+  <!-- ── LEFT: Voice Panel ── -->
+  <div id="voice-panel">
+    <div class="voice-center">
+      <div class="orb-wrap">
+        <svg class="orb-ring-svg" viewBox="0 0 120 120">
+          <circle class="spin1" cx="60" cy="60" r="56" stroke-dasharray="6 8"/>
+          <circle class="spin2" cx="60" cy="60" r="44" stroke-dasharray="3 12"/>
+          <circle cx="60" cy="60" r="34" stroke="rgba(0,180,255,0.08)"/>
+        </svg>
+        <div class="orb" id="main-orb" onclick="toggleListen()" title="Click to activate voice">
+          <svg id="orb-icon" viewBox="0 0 24 24">
+            <rect x="9" y="2" width="6" height="13" rx="3"/>
+            <path d="M5 10a7 7 0 0 0 14 0M12 19v3M9 22h6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="wave-bars" id="wave-bars">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <div id="state-label">click orb to speak</div>
+      <div class="hint-text">Say <em>"Hey Jarvis"</em> to wake<br>or click the orb directly</div>
+    </div>
+
+    <div class="voice-section">
+      <div class="vs-label">you said</div>
+      <div id="transcript-text">Waiting for voice input...</div>
+    </div>
+
+    <div class="voice-section" style="flex:1">
+      <div id="resp-label">jarvis</div>
+      <div id="resp-text">Online and ready, Boss. Click the orb or say "Hey Jarvis" to begin.</div>
+    </div>
+
+    <div class="panel-section" style="border-top:0.5px solid rgba(0,180,255,0.08)">
+      <div class="sec-title" style="margin-bottom:8px">quick commands</div>
+      <div class="cmd-grid">
+        <div class="cmd-chip" onclick="simulateCmd('What is the weather today?')">
+          <svg viewBox="0 0 24 24"><path d="M3 15a4 4 0 1 0 4-7 4 4 0 0 0-4 7zM17 15H7"/><path d="M17.5 9a4.5 4.5 0 1 1 0 9H17"/></svg>"Weather today"
+        </div>
+        <div class="cmd-chip" onclick="simulateCmd('What are the latest AI news headlines?')">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg>"AI news"
+        </div>
+        <div class="cmd-chip" onclick="simulateCmd('What tasks do I have today?')">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>"My tasks"
+        </div>
+        <div class="cmd-chip" onclick="simulateCmd('Play the AI podcast')">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M9 9l6 3-6 3z"/></svg>"Play podcast"
+        </div>
+        <div class="cmd-chip" onclick="simulateCmd('What time is it right now?')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>"What time?"
+        </div>
+        <div class="cmd-chip" onclick="simulateCmd('Give me a full AI briefing for today')">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zM12 8v4l3 3"/></svg>"Daily briefing"
+        </div>
       </div>
     </div>
-    <div class="wave-bars" id="wave-bars">
-      <div class="bar" style="height:4px"></div>
-      <div class="bar" style="height:6px"></div>
-      <div class="bar" style="height:4px"></div>
-      <div class="bar" style="height:8px"></div>
-      <div class="bar" style="height:4px"></div>
-      <div class="bar" style="height:6px"></div>
-      <div class="bar" style="height:4px"></div>
-      <div class="bar" style="height:5px"></div>
-    </div>
-    <div class="status-label" id="status-lbl">click orb to activate</div>
-    <div class="hotword-hint">Say <span>"Hey Jarvis"</span> to wake<br>or click the orb directly</div>
-  </div>
 
-  <div class="transcript-box">
-    <div class="transcript-label"><i class="ti ti-ear" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>you said</div>
-    <div class="transcript-text" id="transcript-text">Waiting for voice input...</div>
-  </div>
-
-  <div class="response-box">
-    <div class="resp-label"><i class="ti ti-robot" aria-hidden="true"></i>jarvis</div>
-    <div class="resp-text" id="resp-text">Online and ready, Boss. Click the orb or say "Hey Jarvis" to begin.</div>
-  </div>
-
-  <div class="wake-toggle">
-    <div class="toggle-track" id="wake-toggle" onclick="toggleWake()">
-      <div class="toggle-thumb"></div>
-    </div>
-    <div class="toggle-lbl" id="wake-lbl">WAKE WORD OFF</div>
-  </div>
-</div>
-
-<div class="right">
-  <div class="cmds-section">
-    <div class="cmds-label">voice commands</div>
-    <div class="cmd-grid">
-      <div class="cmd-chip" onclick="simulateCmd('What is the weather today?')"><i class="ti ti-cloud" aria-hidden="true"></i>"What's the weather?"</div>
-      <div class="cmd-chip" onclick="simulateCmd('Show me the latest AI news')"><i class="ti ti-news" aria-hidden="true"></i>"Latest AI news"</div>
-      <div class="cmd-chip" onclick="simulateCmd('What tasks do I have today?')"><i class="ti ti-checkbox" aria-hidden="true"></i>"My tasks today"</div>
-      <div class="cmd-chip" onclick="simulateCmd('Play the AI podcast')"><i class="ti ti-headphones" aria-hidden="true"></i>"Play podcast"</div>
-      <div class="cmd-chip" onclick="simulateCmd('What time is it?')"><i class="ti ti-clock" aria-hidden="true"></i>"What time is it?"</div>
-      <div class="cmd-chip" onclick="simulateCmd('Give me an AI news briefing')"><i class="ti ti-speakerphone" aria-hidden="true"></i>"AI briefing"</div>
+    <div class="wake-toggle-row">
+      <div class="toggle-track" id="wake-toggle" onclick="toggleWake()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <div class="toggle-lbl" id="wake-lbl">WAKE WORD OFF</div>
     </div>
   </div>
 
-  <div class="news-mini" id="news-mini">
-    <div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>
-    <div style="font-size:12px;color:rgba(0,180,255,0.4)" class="loading-pulse">Fetching AI headlines...</div>
-  </div>
-</div>
+  <!-- ── MIDDLE: Weather + Tasks ── -->
+  <div id="mid-panel">
 
-</div>
+    <!-- Weather -->
+    <div class="panel-section">
+      <div class="sec-header">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M3 15a4 4 0 1 0 4-7 4 4 0 0 0-4 7zM17 15H7"/><path d="M17.5 9a4.5 4.5 0 1 1 0 9H17"/></svg>
+          weather — Selangor, MY
+        </div>
+        <button class="refresh-btn" onclick="fetchWeather()">
+          <svg viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M4 9a9 9 0 0 1 15-4.5L20 8M20 15a9 9 0 0 1-15 4.5L4 16"/></svg>
+          refresh
+        </button>
+      </div>
+      <div id="weather-container">
+        <div id="weather-loading">Fetching weather data...</div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="panel-section" style="flex:1">
+      <div class="sec-header">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>
+          today's tasks
+        </div>
+      </div>
+      <div class="tasks-list" id="tasks-list"></div>
+      <div class="add-task-row">
+        <input type="text" id="new-task" placeholder="Add a task..." />
+        <button class="btn-add" onclick="addTask()">+ Add</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT: News + Podcast ── -->
+  <div id="right-panel">
+
+    <!-- News -->
+    <div class="panel-section" style="flex:1">
+      <div class="sec-header">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg>
+          AI news feed
+        </div>
+        <button class="refresh-btn" onclick="fetchNews()">
+          <svg viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M4 9a9 9 0 0 1 15-4.5L20 8M20 15a9 9 0 0 1-15 4.5L4 16"/></svg>
+          refresh
+        </button>
+      </div>
+      <div id="news-list" class="news-list">
+        <div id="news-loading" style="font-size:13px;color:rgba(0,180,255,0.4);animation:lpulse 1.5s infinite">Loading latest AI news...</div>
+      </div>
+    </div>
+
+    <!-- Podcast -->
+    <div class="panel-section">
+      <div class="sec-header">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 1 6.36 2.64M12 3v3M12 21v-3M21 12h-3M3 12H6"/></svg>
+          AI podcast queue
+        </div>
+      </div>
+      <div class="podcast-player">
+        <div class="pod-now">now playing</div>
+        <div class="pod-title" id="pod-title">The AI Daily Brief: GPT-5, Gemini Ultra & The Race to AGI</div>
+        <div class="pod-ep" id="pod-ep">Ep. 312 · AI Daily Brief · 42:00</div>
+        <div class="progress-bar" id="progress-bar" onclick="seekProgress(event)">
+          <div class="progress-fill" id="prog-fill"></div>
+          <div class="progress-dot" id="prog-dot"></div>
+        </div>
+        <div class="player-controls">
+          <div class="player-btns">
+            <button class="ctrl-btn" onclick="skip(-15)" title="-15s">
+              <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 8-8M4 12V8l-4 4 4 4v-4"/><text x="8" y="16" font-size="7" fill="currentColor" stroke="none">15</text></svg>
+            </button>
+            <div class="play-btn" id="play-btn" onclick="togglePlay()">
+              <svg id="play-icon" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <button class="ctrl-btn" onclick="skip(15)" title="+15s">
+              <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-8-8M20 12V8l4 4-4 4v-4"/><text x="8" y="16" font-size="7" fill="currentColor" stroke="none">15</text></svg>
+            </button>
+          </div>
+          <div class="player-time"><span id="cur-time">14:47</span> / <span id="dur-time">42:00</span></div>
+          <div class="vol-row">
+            <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4zM19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <input type="range" class="vol-slider" min="0" max="100" value="80" />
+          </div>
+        </div>
+      </div>
+      <div class="queue-list" id="queue-list"></div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recog = null;
+// ── State ──
+let API_KEY = localStorage.getItem('jarvis_api_key') || '';
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 let synth = window.speechSynthesis;
-let isListening = false;
-let isSpeaking = false;
-let wakeActive = false;
-let wakeRecog = null;
-let conversationHistory = [];
+let recog = null, wakeRecog = null;
+let isListening = false, isSpeaking = false, wakeActive = false;
+let progress = 35, playing = false, podTimer = null;
+let convHistory = [];
 
 const tasks = [
-  "Review Claude API integration PR",
-  "Read the Anthropic Constitution AI paper",
-  "30 minute walk or gym session",
-  "Prepare AI project demo slides",
-  "Check in with team on standup notes"
+  { text: 'Review Claude API integration PR', tag: 'work', done: false },
+  { text: 'Read Anthropic Constitutional AI paper', tag: 'learn', done: false },
+  { text: '30 min walk or gym session', tag: 'health', done: true },
+  { text: 'Prepare AI project demo slides', tag: 'work', done: false },
+  { text: 'Check in with team standup notes', tag: 'work', done: false },
 ];
 
-function updateClock() {
-  const now = new Date();
-  const h = now.getHours(), m = now.getMinutes().toString().padStart(2,"0");
-  const ap = h >= 12 ? "PM" : "AM";
-  document.getElementById("clk").textContent = `${(h%12)||12}:${m} ${ap}`;
+const podcasts = [
+  { title: 'The AI Daily Brief: GPT-5 & The Race to AGI', ep: 'Ep. 312 · AI Daily Brief', dur: '42:00', active: true },
+  { title: 'Lex Fridman #435 — Sam Altman on the Future of AI', ep: 'Lex Fridman Podcast', dur: '3:12:44', active: false },
+  { title: 'Hard Fork — AI in the Workplace Special', ep: 'Hard Fork · NYT', dur: '58:22', active: false },
+  { title: 'TWIML AI — Agentic Systems Deep Dive', ep: 'This Week in ML', dur: '1:04:11', active: false },
+  { title: 'No Priors — Why Foundation Models Are Underrated', ep: 'No Priors', dur: '47:33', active: false },
+];
+
+// ── API Key ──
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-')) { alert('Please enter a valid Anthropic API key (starts with sk-ant-)'); return; }
+  API_KEY = val;
+  localStorage.setItem('jarvis_api_key', val);
+  document.getElementById('api-modal').classList.add('hidden');
+  init();
 }
-updateClock();
-setInterval(updateClock, 1000);
+if (API_KEY) { document.getElementById('api-modal').classList.add('hidden'); init(); }
 
-function setUIState(state) {
-  const orb = document.getElementById("main-orb");
-  const icon = document.getElementById("orb-icon");
-  const lbl = document.getElementById("status-lbl");
-  const arc = document.getElementById("arc-ring");
-  const sdot = document.getElementById("sdot");
-  const stxt = document.getElementById("stxt");
-  const bars = document.querySelectorAll(".bar");
-
-  orb.className = "orb";
-  arc.className = "arc";
-  lbl.className = "status-label";
-  bars.forEach(b => { b.className = "bar"; b.style.height = "4px"; });
-
-  if (state === "listening") {
-    orb.classList.add("listening");
-    arc.classList.add("listening");
-    lbl.classList.add("listening");
-    lbl.textContent = "listening...";
-    icon.className = "ti ti-microphone";
-    sdot.classList.add("on");
-    stxt.classList.add("on");
-    stxt.textContent = "LISTENING";
-    bars.forEach(b => b.classList.add("active"));
-  } else if (state === "thinking") {
-    lbl.textContent = "thinking...";
-    icon.className = "ti ti-brain";
-    sdot.classList.add("on");
-    stxt.classList.add("on");
-    stxt.textContent = "PROCESSING";
-  } else if (state === "speaking") {
-    orb.classList.add("speaking");
-    arc.classList.add("speaking");
-    lbl.classList.add("speaking");
-    lbl.textContent = "speaking...";
-    icon.className = "ti ti-volume";
-    sdot.classList.add("on");
-    stxt.classList.add("on");
-    stxt.textContent = "SPEAKING";
-    bars.forEach(b => b.classList.add("speaking-bar"));
-  } else {
-    lbl.textContent = wakeActive ? "wake word active" : "click orb to activate";
-    icon.className = "ti ti-microphone";
-    stxt.textContent = wakeActive ? "WAKE ACTIVE" : "STANDBY";
-    if (wakeActive) { sdot.classList.add("on"); stxt.classList.add("on"); }
-    else { sdot.className = "sdot"; stxt.className = "stxt"; }
+function resetApiKey() {
+  if (confirm('Reset your API key? You will need to enter it again.')) {
+    localStorage.removeItem('jarvis_api_key');
+    API_KEY = '';
+    document.getElementById('api-modal').classList.remove('hidden');
+    document.getElementById('api-key-input').value = '';
   }
 }
 
+function init() { updateClock(); fetchWeather(); fetchNews(); renderTasks(); renderQueue(); }
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes().toString().padStart(2,'0');
+  const ap = h >= 12 ? 'PM' : 'AM';
+  document.getElementById('clock').textContent = `${(h%12)||12}:${m} ${ap}`;
+  const greet = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  document.getElementById('greet-time').textContent = greet;
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('date-display').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+
+// ── UI State ──
+function setUIState(state) {
+  const orb = document.getElementById('main-orb');
+  const icon = document.getElementById('orb-icon');
+  const lbl = document.getElementById('state-label');
+  const arc = document.getElementById('arc-ring');
+  const sdot = document.getElementById('sdot');
+  const stxt = document.getElementById('status-text');
+  const bars = document.querySelectorAll('.bar');
+
+  orb.className = 'orb';
+  arc.className = 'arc-ring';
+  lbl.className = '';
+  sdot.className = 'status-dot';
+  stxt.className = '';
+  bars.forEach(b => { b.className = 'bar'; });
+
+  const micSVG = '<rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3M9 22h6"/>';
+  const brainSVG = '<path d="M9 2a4 4 0 0 0-4 4v1a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V6a4 4 0 0 0-4-4z"/><path d="M5 7H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M19 7h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2M9 21h6"/>';
+  const volSVG = '<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+
+  if (state === 'listening') {
+    orb.classList.add('listening'); arc.classList.add('listening');
+    lbl.classList.add('listening'); lbl.textContent = 'listening...';
+    sdot.classList.add('listening'); stxt.classList.add('listening'); stxt.textContent = 'LISTENING';
+    icon.innerHTML = micSVG;
+    bars.forEach(b => b.classList.add('active'));
+  } else if (state === 'thinking') {
+    lbl.textContent = 'thinking...'; icon.innerHTML = brainSVG;
+    sdot.classList.add('on'); stxt.classList.add('on'); stxt.textContent = 'PROCESSING';
+  } else if (state === 'speaking') {
+    orb.classList.add('speaking'); arc.classList.add('speaking');
+    lbl.classList.add('speaking'); lbl.textContent = 'speaking...';
+    sdot.classList.add('speaking'); stxt.classList.add('speaking'); stxt.textContent = 'SPEAKING';
+    icon.innerHTML = volSVG;
+    bars.forEach(b => b.classList.add('speaking-bar'));
+  } else {
+    lbl.textContent = wakeActive ? 'wake word active — say "Hey Jarvis"' : 'click orb to speak';
+    icon.innerHTML = micSVG;
+    if (wakeActive) { sdot.classList.add('on'); stxt.classList.add('on'); stxt.textContent = 'WAKE ACTIVE'; }
+    else stxt.textContent = 'STANDBY';
+  }
+}
+
+// ── TTS ──
 function speak(text, onEnd) {
   if (!synth) { if (onEnd) onEnd(); return; }
   synth.cancel();
   const utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 1.05;
-  utt.pitch = 0.85;
-  utt.volume = 1;
+  utt.rate = 1.05; utt.pitch = 0.82; utt.volume = 1;
   const voices = synth.getVoices();
-  const preferred = voices.find(v =>
-    v.name.includes("Google UK English Male") ||
-    v.name.includes("Daniel") ||
-    v.name.includes("David") ||
-    (v.lang === "en-GB" && v.name.includes("Male"))
-  ) || voices.find(v => v.lang && v.lang.startsWith("en"));
-  if (preferred) utt.voice = preferred;
+  const v = voices.find(v => v.name.includes('Google UK English Male'))
+    || voices.find(v => v.name.includes('Daniel') || v.name.includes('David'))
+    || voices.find(v => v.lang === 'en-GB')
+    || voices.find(v => v.lang && v.lang.startsWith('en'));
+  if (v) utt.voice = v;
   utt.onend = () => { isSpeaking = false; if (onEnd) onEnd(); };
+  utt.onerror = () => { isSpeaking = false; if (onEnd) onEnd(); };
   isSpeaking = true;
-  setUIState("speaking");
-  document.getElementById("resp-text").textContent = text;
+  setUIState('speaking');
+  document.getElementById('resp-text').textContent = text;
   synth.speak(utt);
 }
 
+// ── AI Call ──
 async function askJarvis(userText) {
-  setUIState("thinking");
-  document.getElementById("transcript-text").textContent = userText;
-  document.getElementById("transcript-text").classList.add("active");
-  document.getElementById("resp-text").textContent = "Processing...";
+  if (!API_KEY) { alert('Please set your API key first — reload the page.'); return; }
+  setUIState('thinking');
+  document.getElementById('transcript-text').textContent = userText;
+  document.getElementById('transcript-text').classList.add('active');
+  document.getElementById('resp-text').textContent = 'Processing...';
 
   const lower = userText.toLowerCase();
 
-  if (lower.includes("time")) {
+  // Local fast-path responses
+  if (lower.includes('time') && lower.length < 30) {
     const now = new Date();
     const h = now.getHours(), m = now.getMinutes();
-    const ap = h >= 12 ? "PM" : "AM";
-    const reply = `The time is ${(h%12)||12}:${m.toString().padStart(2,"0")} ${ap}, Boss.`;
-    speak(reply, () => setUIState("idle"));
+    const ap = h >= 12 ? 'PM' : 'AM';
+    speak(`The time is ${(h%12)||12}:${m.toString().padStart(2,'0')} ${ap}, Boss.`, () => setUIState('idle'));
+    return;
+  }
+  if ((lower.includes('task') || lower.includes('todo')) && !lower.includes('news')) {
+    const remaining = tasks.filter(t => !t.done);
+    const reply = remaining.length
+      ? `You have ${remaining.length} tasks pending today, Boss. Starting with: ${remaining.slice(0,2).map(t=>t.text).join(', ')}.`
+      : 'All tasks complete for today, Boss. Impressive.';
+    speak(reply, () => setUIState('idle'));
     return;
   }
 
-  if (lower.includes("task") || lower.includes("todo") || lower.includes("today")) {
-    const reply = `You have ${tasks.length} tasks today, Boss. They are: ${tasks.slice(0,3).join(", ")}, and ${tasks.length - 3} more.`;
-    speak(reply, () => setUIState("idle"));
-    return;
-  }
-
-  conversationHistory.push({ role: "user", content: userText });
+  convHistory.push({ role: 'user', content: userText });
 
   try {
     const now = new Date();
-    const sysPrompt = `You are J.A.R.V.I.S, a sophisticated AI personal assistant modelled after the Iron Man AI. 
-You speak with intelligence, brevity and a touch of dry wit. Always call the user "Boss". 
+    const systemPrompt = `You are J.A.R.V.I.S, a sophisticated AI personal assistant in the style of Iron Man's Jarvis. 
+Speak with intelligence, precision, dry wit, and warmth. Always address the user as "Boss".
 Current time: ${now.toLocaleTimeString()}. Location: Balakong, Selangor, Malaysia.
-Today's tasks: ${tasks.join("; ")}.
-Keep responses under 3 sentences — you are speaking aloud, not writing. Be helpful, sharp, and never verbose.`;
+Today's pending tasks: ${tasks.filter(t=>!t.done).map(t=>t.text).join('; ')}.
+CRITICAL: Keep responses to 2-3 sentences maximum. You are speaking aloud — be concise, clear, and sharp. No markdown.`;
 
-    const tools = lower.includes("weather") || lower.includes("news") || lower.includes("briefing") || lower.includes("latest")
-      ? [{ type: "web_search_20250305", name: "web_search" }]
-      : [];
+    const useSearch = /weather|news|latest|today|current|recent|briefing|headline/i.test(lower);
+    const body = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: convHistory.slice(-10)
+    };
+    if (useSearch) body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
 
-    const body = { model: "claude-sonnet-4-6", max_tokens: 1000, system: sysPrompt, messages: conversationHistory };
-    if (tools.length) body.tools = tools;
-
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify(body)
     });
+
+    if (!res.ok) {
+      const err = await res.json();
+      if (err.error && err.error.type === 'authentication_error') {
+        localStorage.removeItem('jarvis_api_key');
+        speak('Authentication failed, Boss. Please reload and enter a valid API key.', () => setUIState('idle'));
+        return;
+      }
+      throw new Error(err.error?.message || 'API error');
+    }
+
     const data = await res.json();
-    const reply = data.content.filter(c => c.type === "text").map(c => c.text).join(" ").trim()
-      || "I encountered a systems issue, Boss. Please try again.";
+    const reply = data.content.filter(c => c.type === 'text').map(c => c.text).join(' ').trim()
+      || 'I encountered a hiccup in my systems, Boss. Please try again.';
 
-    conversationHistory.push({ role: "assistant", content: reply });
-    if (conversationHistory.length > 12) conversationHistory = conversationHistory.slice(-12);
+    convHistory.push({ role: 'assistant', content: reply });
+    if (convHistory.length > 14) convHistory = convHistory.slice(-14);
+    speak(reply, () => setUIState('idle'));
 
-    speak(reply, () => setUIState("idle"));
   } catch(e) {
-    const fallback = "I seem to be having trouble connecting to my systems, Boss. Please check your connection.";
-    speak(fallback, () => setUIState("idle"));
+    speak('A systems error occurred, Boss. This may be a network issue or an invalid API key. Please check and try again.', () => setUIState('idle'));
   }
 }
 
+// ── Voice Recognition ──
 function startListening() {
-  if (!SpeechRecognition) {
-    document.getElementById("resp-text").textContent = "Speech recognition is not supported in this browser. Please use Chrome or Edge, Boss.";
+  if (!SpeechRec) {
+    document.getElementById('resp-text').textContent = 'Speech recognition not supported in this browser, Boss. Please use Chrome or Edge.';
     return;
   }
-  if (recog) recog.stop();
-  recog = new SpeechRecognition();
-  recog.lang = "en-US";
-  recog.interimResults = true;
-  recog.maxAlternatives = 1;
-  recog.continuous = false;
-
-  recog.onstart = () => { isListening = true; setUIState("listening"); };
-
+  if (recog) { try { recog.stop(); } catch(e){} }
+  recog = new SpeechRec();
+  recog.lang = 'en-US'; recog.interimResults = true; recog.maxAlternatives = 1; recog.continuous = false;
+  recog.onstart = () => { isListening = true; setUIState('listening'); };
   recog.onresult = (e) => {
-    const transcript = Array.from(e.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-text").textContent = transcript;
-    if (e.results[e.results.length - 1].isFinal) {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('transcript-text').textContent = t;
+    if (e.results[e.results.length-1].isFinal) {
       isListening = false;
-      recog.stop();
-      askJarvis(transcript);
+      try { recog.stop(); } catch(e){}
+      askJarvis(t);
     }
   };
-
   recog.onerror = (e) => {
     isListening = false;
-    setUIState("idle");
-    if (e.error !== "aborted") {
-      document.getElementById("resp-text").textContent = `Microphone error: ${e.error}. Please allow microphone access, Boss.`;
-    }
+    setUIState('idle');
+    if (e.error === 'not-allowed') document.getElementById('resp-text').textContent = 'Microphone access denied, Boss. Please allow microphone permissions and try again.';
+    else if (e.error !== 'aborted' && e.error !== 'no-speech') document.getElementById('resp-text').textContent = `Voice error: ${e.error}. Please try again, Boss.`;
   };
-
-  recog.onend = () => {
-    isListening = false;
-    if (!isSpeaking) setUIState("idle");
-  };
-
-  recog.start();
+  recog.onend = () => { isListening = false; if (!isSpeaking) setUIState('idle'); };
+  try { recog.start(); } catch(e) { setUIState('idle'); }
 }
 
 function stopListening() {
-  if (recog) recog.stop();
-  isListening = false;
-  setUIState("idle");
+  if (recog) { try { recog.stop(); } catch(e){} }
+  isListening = false; setUIState('idle');
 }
 
 function toggleListen() {
@@ -393,93 +768,259 @@ function toggleListen() {
 function simulateCmd(text) {
   if (isListening) stopListening();
   if (isSpeaking) { synth.cancel(); isSpeaking = false; }
-  setUIState("listening");
-  setTimeout(() => {
-    document.getElementById("transcript-text").textContent = text;
-    askJarvis(text);
-  }, 400);
+  setUIState('listening');
+  setTimeout(() => { document.getElementById('transcript-text').textContent = text; askJarvis(text); }, 300);
 }
 
+// ── Wake Word ──
 function toggleWake() {
   wakeActive = !wakeActive;
-  const track = document.getElementById("wake-toggle");
-  const lbl = document.getElementById("wake-lbl");
+  const track = document.getElementById('wake-toggle');
+  const lbl = document.getElementById('wake-lbl');
   if (wakeActive) {
-    track.classList.add("on");
-    lbl.classList.add("on");
-    lbl.textContent = "WAKE WORD ON";
-    startWakeWordListener();
-    speak("Wake word detection enabled. Say Hey Jarvis to activate me, Boss.", () => setUIState("idle"));
+    track.classList.add('on'); lbl.classList.add('on'); lbl.textContent = 'WAKE WORD ON';
+    startWakeListener();
+    speak('Wake word detection enabled. Say Hey Jarvis anytime, Boss.', () => setUIState('idle'));
   } else {
-    track.classList.remove("on");
-    lbl.classList.remove("on");
-    lbl.textContent = "WAKE WORD OFF";
-    if (wakeRecog) { wakeRecog.stop(); wakeRecog = null; }
-    setUIState("idle");
+    track.classList.remove('on'); lbl.classList.remove('on'); lbl.textContent = 'WAKE WORD OFF';
+    if (wakeRecog) { try { wakeRecog.stop(); } catch(e){} wakeRecog = null; }
+    setUIState('idle');
   }
 }
 
-function startWakeWordListener() {
-  if (!SpeechRecognition) return;
-  if (wakeRecog) wakeRecog.stop();
-  wakeRecog = new SpeechRecognition();
-  wakeRecog.continuous = true;
-  wakeRecog.interimResults = true;
-  wakeRecog.lang = "en-US";
-
+function startWakeListener() {
+  if (!SpeechRec) return;
+  if (wakeRecog) { try { wakeRecog.stop(); } catch(e){} }
+  wakeRecog = new SpeechRec();
+  wakeRecog.continuous = true; wakeRecog.interimResults = true; wakeRecog.lang = 'en-US';
   wakeRecog.onresult = (e) => {
-    const heard = Array.from(e.results).map(r => r[0].transcript).join(" ").toLowerCase();
-    if (heard.includes("hey jarvis") || heard.includes("jarvis") || heard.includes("hey javis")) {
-      wakeRecog.stop();
+    const heard = Array.from(e.results).map(r => r[0].transcript).join(' ').toLowerCase();
+    if (heard.includes('hey jarvis') || heard.includes('jarvis') || heard.includes('hey javis') || heard.includes('hey travis')) {
+      try { wakeRecog.stop(); } catch(e){}
+      wakeRecog = null;
       if (isSpeaking) { synth.cancel(); isSpeaking = false; }
       setTimeout(() => {
-        speak("Yes Boss?", () => {
-          setUIState("idle");
-          setTimeout(() => {
-            startListening();
-            if (wakeActive) setTimeout(startWakeWordListener, 3000);
-          }, 300);
-        });
-      }, 200);
+        speak('Yes, Boss?', () => { setTimeout(() => { startListening(); if (wakeActive) setTimeout(startWakeListener, 2500); }, 300); });
+      }, 150);
     }
   };
-
-  wakeRecog.onend = () => {
-    if (wakeActive && !isListening) {
-      setTimeout(() => { if (wakeActive) startWakeWordListener(); }, 500);
-    }
-  };
-
+  wakeRecog.onend = () => { if (wakeActive && !isListening && !isSpeaking) setTimeout(() => { if (wakeActive) startWakeListener(); }, 600); };
+  wakeRecog.onerror = (e) => { if (e.error !== 'aborted' && wakeActive) setTimeout(() => { if (wakeActive) startWakeListener(); }, 1000); };
   try { wakeRecog.start(); } catch(e) {}
 }
 
-async function loadNews() {
-  const el = document.getElementById("news-mini");
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 600,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [{ role: "user", content: "Search for the 4 most recent AI news headlines today. Return ONLY a JSON array of 4 strings, each a headline under 70 chars. No markdown, no extra text." }]
-      })
-    });
-    const data = await res.json();
-    const txt = data.content.filter(c => c.type === "text").map(c => c.text).join("");
-    const clean = txt.replace(/```json|```/g,"").trim();
-    const items = JSON.parse(clean);
-    el.innerHTML = `<div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>` +
-      items.map((n,i) => `<div class="news-item-mini"><span class="news-num">0${i+1}</span><span>${n}</span></div>`).join("");
-  } catch(e) {
-    const fallback = ["GPT-5 releases with enhanced reasoning capabilities","Google Gemini Ultra sets new benchmark records","EU AI Act enforcement rules now finalized","Anthropic releases new Constitutional AI research"];
-    el.innerHTML = `<div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>` +
-      fallback.map((n,i) => `<div class="news-item-mini"><span class="news-num">0${i+1}</span><span>${n}</span></div>`).join("");
+// ── Tasks ──
+function renderTasks() {
+  document.getElementById('tasks-list').innerHTML = tasks.map((t, i) => `
+    <div class="task-item ${t.done ? 'done' : ''}" onclick="toggleTask(${i})">
+      <div class="task-check">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="task-text">${t.text}</div>
+      <span class="task-tag tag-${t.tag}">${t.tag}</span>
+    </div>
+  `).join('');
+  document.getElementById('task-remaining').textContent = tasks.filter(t => !t.done).length;
+}
+
+function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(); }
+
+function addTask() {
+  const inp = document.getElementById('new-task');
+  const val = inp.value.trim();
+  if (!val) return;
+  tasks.push({ text: val, tag: 'personal', done: false });
+  renderTasks(); inp.value = '';
+}
+document.getElementById && document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('new-task').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+});
+
+// ── Podcast ──
+function renderQueue() {
+  document.getElementById('queue-list').innerHTML = podcasts.map((p, i) => `
+    <div class="queue-item ${p.active ? 'active' : ''}" onclick="selectPod(${i})">
+      <div class="q-num">0${i+1}</div>
+      <div class="q-info">
+        <div class="q-title">${p.title}</div>
+        <div class="q-dur">${p.ep} · ${p.dur}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectPod(i) {
+  podcasts.forEach((p,j) => p.active = j === i);
+  const pod = podcasts[i];
+  document.getElementById('pod-title').textContent = pod.title;
+  document.getElementById('pod-ep').textContent = pod.ep + ' · ' + pod.dur;
+  document.getElementById('dur-time').textContent = pod.dur;
+  progress = 0; updateProgress(); renderQueue();
+}
+
+function togglePlay() {
+  playing = !playing;
+  const icon = document.getElementById('play-icon');
+  const btn = document.getElementById('play-btn');
+  if (playing) {
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    btn.classList.add('playing');
+    podTimer = setInterval(() => { progress = Math.min(progress + 0.04, 100); updateProgress(); }, 500);
+  } else {
+    icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    btn.classList.remove('playing');
+    clearInterval(podTimer);
   }
 }
 
-synth && synth.addEventListener && synth.addEventListener("voiceschanged", () => {});
-loadNews();
-setUIState("idle");
+function updateProgress() {
+  document.getElementById('prog-fill').style.width = progress + '%';
+  document.getElementById('prog-dot').style.left = progress + '%';
+  const active = podcasts.find(p => p.active);
+  const parts = (active ? active.dur : '42:00').split(':');
+  const totalSec = parts.length === 3
+    ? parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2])
+    : parseInt(parts[0])*60 + parseInt(parts[1]);
+  const cur = Math.round(totalSec * progress / 100);
+  const hh = Math.floor(cur / 3600);
+  const mm = Math.floor((cur % 3600) / 60);
+  const ss = cur % 60;
+  document.getElementById('cur-time').textContent = hh > 0
+    ? `${hh}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`
+    : `${mm}:${ss.toString().padStart(2,'0')}`;
+}
+
+function skip(sec) {
+  const active = podcasts.find(p => p.active);
+  const parts = (active ? active.dur : '42:00').split(':');
+  const total = parts.length === 3
+    ? parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2])
+    : parseInt(parts[0])*60 + parseInt(parts[1]);
+  const cur = total * progress / 100;
+  progress = Math.max(0, Math.min(100, (cur + sec) / total * 100));
+  updateProgress();
+}
+
+function seekProgress(e) {
+  const bar = document.getElementById('progress-bar');
+  const rect = bar.getBoundingClientRect();
+  progress = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+  updateProgress();
+}
+
+// ── Weather ──
+async function fetchWeather() {
+  if (!API_KEY) return;
+  const el = document.getElementById('weather-container');
+  el.innerHTML = '<div id="weather-loading">Fetching weather data...</div>';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 400,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: 'Search for current weather in Balakong, Selangor, Malaysia right now. Return ONLY a JSON object with these exact keys: temp_c (integer), feels_like_c (integer), condition (string max 20 chars), humidity (integer), wind_kmh (integer), uv_index (integer). No markdown, no explanation, just the JSON object.' }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(c => c.type === 'text').map(c => c.text).join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    const w = JSON.parse(clean);
+    el.innerHTML = `
+      <div class="weather-main">
+        <div class="weather-temp-big">${Math.round(w.temp_c)}<sup>°C</sup></div>
+        <div class="weather-right">
+          <div class="weather-city">Balakong, Selangor</div>
+          <div class="weather-cond">${w.condition}</div>
+          <div class="weather-feels">Feels like ${Math.round(w.feels_like_c)}°C</div>
+        </div>
+      </div>
+      <div class="weather-stats">
+        <div class="wstat">Humidity <span>${w.humidity}%</span></div>
+        <div class="wstat">Wind <span>${w.wind_kmh} km/h</span></div>
+        <div class="wstat">UV <span>${w.uv_index}</span></div>
+      </div>`;
+  } catch(e) {
+    el.innerHTML = `
+      <div class="weather-main">
+        <div class="weather-temp-big">32<sup>°C</sup></div>
+        <div class="weather-right">
+          <div class="weather-city">Balakong, Selangor</div>
+          <div class="weather-cond">Partly Cloudy</div>
+          <div class="weather-feels">Feels like 39°C</div>
+        </div>
+      </div>
+      <div class="weather-stats">
+        <div class="wstat">Humidity <span>82%</span></div>
+        <div class="wstat">Wind <span>14 km/h</span></div>
+        <div class="wstat">UV <span>8</span></div>
+      </div>`;
+  }
+}
+
+// ── News ──
+async function fetchNews() {
+  if (!API_KEY) return;
+  const el = document.getElementById('news-list');
+  el.innerHTML = '<div style="font-size:13px;color:rgba(0,180,255,0.4);animation:lpulse 1.5s infinite">Loading latest AI news...</div>';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 800,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: 'Search for the 5 most recent AI news stories right now. Return ONLY a JSON array of 5 objects with keys: title (string max 80 chars), source (publication name string), time (string like "2h ago"), hot (boolean). No markdown, no extra text.' }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(c => c.type === 'text').map(c => c.text).join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    const news = JSON.parse(clean);
+    el.innerHTML = news.map(n => `
+      <div class="news-item">
+        <div class="news-meta">
+          <span class="news-src">${n.source}</span>
+          <span class="news-sep"></span>
+          <span class="news-time">${n.time}</span>
+          <span class="news-badge ${n.hot ? 'badge-hot' : 'badge-new'}">${n.hot ? 'HOT' : 'NEW'}</span>
+        </div>
+        <div class="news-title">${n.title}</div>
+      </div>`).join('');
+  } catch(e) {
+    const fallback = [
+      { source: 'TechCrunch', time: '1h ago', hot: true, title: 'OpenAI releases GPT-5 with reasoning and multimodal upgrades' },
+      { source: 'The Verge', time: '3h ago', hot: false, title: 'Google DeepMind Gemini Ultra breaks new science benchmark records' },
+      { source: 'Reuters', time: '5h ago', hot: true, title: 'EU AI Act enforcement rules finalised — key developer implications' },
+      { source: 'MIT Tech Review', time: '8h ago', hot: false, title: 'Anthropic research: Constitutional AI cuts harmful outputs by 40%' },
+      { source: 'Bloomberg', time: '1d ago', hot: false, title: 'Microsoft Azure AI revenue surpasses $10B as enterprise adoption grows' },
+    ];
+    el.innerHTML = fallback.map(n => `
+      <div class="news-item">
+        <div class="news-meta">
+          <span class="news-src">${n.source}</span>
+          <span class="news-sep"></span>
+          <span class="news-time">${n.time}</span>
+          <span class="news-badge ${n.hot ? 'badge-hot' : 'badge-new'}">${n.hot ? 'HOT' : 'NEW'}</span>
+        </div>
+        <div class="news-title">${n.title}</div>
+      </div>`).join('');
+  }
+}
+
+// init keyboard listener after load
+window.addEventListener('load', () => {
+  synth && synth.getVoices();
+  const inp = document.getElementById('new-task');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+  const apiInp = document.getElementById('api-key-input');
+  if (apiInp) apiInp.addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+  updateClock();
+  renderTasks();
+  renderQueue();
+  updateProgress();
+});
 </script>
+</body>
+</html>

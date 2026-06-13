@@ -1,0 +1,485 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.jv{background:#090d18;min-height:600px;font-family:var(--font-sans);color:#d0dcea;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:0.5px solid rgba(0,180,255,0.18)}
+.logo{display:flex;align-items:center;gap:10px}
+.arc{width:32px;height:32px;border-radius:50%;border:2px solid #00b4ff;display:flex;align-items:center;justify-content:center}
+.arc.listening{animation:arcpulse 0.8s infinite}
+@keyframes arcpulse{0%,100%{box-shadow:0 0 0 0 rgba(0,180,255,0.6)}50%{box-shadow:0 0 0 10px rgba(0,180,255,0)}}
+.arc.speaking{animation:arcspeak 0.5s infinite alternate}
+@keyframes arcspeak{0%{box-shadow:0 0 0 2px rgba(0,255,180,0.5)}100%{box-shadow:0 0 0 8px rgba(0,255,180,0.1)}}
+.arc i{font-size:15px;color:#00b4ff}
+.logo-name{font-size:16px;font-weight:500;letter-spacing:3px;color:#00b4ff}
+.logo-sub{font-size:10px;color:rgba(0,180,255,0.45);letter-spacing:2px}
+.topright{display:flex;align-items:center;gap:14px}
+.sbar{display:flex;align-items:center;gap:6px}
+.sdot{width:7px;height:7px;border-radius:50%;background:#444;transition:background 0.3s}
+.sdot.on{background:#00ff88;animation:sdotblink 1.5s infinite}
+@keyframes sdotblink{0%,100%{opacity:1}50%{opacity:0.3}}
+.stxt{font-size:11px;letter-spacing:1px;color:#444;transition:color 0.3s}
+.stxt.on{color:#00ff88}
+.clk{font-size:12px;color:rgba(208,220,234,0.4);font-family:var(--font-mono)}
+
+.main-grid{display:grid;grid-template-columns:1fr 1fr;flex:1}
+.left{border-right:0.5px solid rgba(0,180,255,0.12);display:flex;flex-direction:column}
+.right{display:flex;flex-direction:column}
+
+.voice-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1);gap:16px}
+.orb-wrap{position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center}
+.orb-ring{position:absolute;border-radius:50%;border:1px solid rgba(0,180,255,0.2)}
+.orb-ring.r1{width:110px;height:110px}
+.orb-ring.r2{width:86px;height:86px;border-color:rgba(0,180,255,0.15)}
+.orb-ring.r3{width:64px;height:64px;border-color:rgba(0,180,255,0.1)}
+.orb-ring.spin{animation:ringspin 4s linear infinite}
+.orb-ring.spin2{animation:ringspin 7s linear infinite reverse}
+@keyframes ringspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.orb{width:52px;height:52px;border-radius:50%;background:#0d1526;border:2px solid #00b4ff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;z-index:2}
+.orb:hover{background:rgba(0,180,255,0.12)}
+.orb.listening{border-color:#00ffbb;background:rgba(0,255,180,0.08)}
+.orb.speaking{border-color:#a07dff;background:rgba(140,80,255,0.1)}
+.orb i{font-size:22px;color:#00b4ff;transition:color 0.3s}
+.orb.listening i{color:#00ffbb}
+.orb.speaking i{color:#a07dff}
+
+.wave-bars{display:flex;align-items:center;gap:3px;height:24px}
+.bar{width:3px;border-radius:2px;background:rgba(0,180,255,0.2);transition:background 0.3s}
+.bar.active{background:#00b4ff;animation:wavebar 0.6s ease infinite alternate}
+.bar.speaking-bar{background:#a07dff;animation:wavebar 0.3s ease infinite alternate}
+@keyframes wavebar{0%{height:4px}100%{height:20px}}
+.bar:nth-child(1){animation-delay:0s}
+.bar:nth-child(2){animation-delay:0.1s}
+.bar:nth-child(3){animation-delay:0.2s}
+.bar:nth-child(4){animation-delay:0.05s}
+.bar:nth-child(5){animation-delay:0.15s}
+.bar:nth-child(6){animation-delay:0.25s}
+.bar:nth-child(7){animation-delay:0.08s}
+.bar:nth-child(8){animation-delay:0.18s}
+
+.status-label{font-size:11px;letter-spacing:2px;color:rgba(0,180,255,0.5);text-transform:uppercase}
+.status-label.listening{color:#00ffbb}
+.status-label.speaking{color:#a07dff}
+.hotword-hint{font-size:11px;color:rgba(208,220,234,0.3);text-align:center;line-height:1.5}
+.hotword-hint span{color:rgba(0,180,255,0.6)}
+
+.transcript-box{padding:16px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1);flex:1}
+.transcript-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:8px;text-transform:uppercase}
+.transcript-text{font-size:13px;color:rgba(208,220,234,0.75);line-height:1.6;min-height:40px;font-style:italic}
+.transcript-text.active{color:#e0eaf8}
+
+.response-box{padding:16px 20px;flex:1}
+.resp-label{font-size:10px;letter-spacing:1.5px;color:rgba(160,125,255,0.5);margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.resp-label i{font-size:13px}
+.resp-text{font-size:13px;color:rgba(208,220,234,0.8);line-height:1.6;min-height:60px}
+
+.cmds-section{padding:16px 20px;border-bottom:0.5px solid rgba(0,180,255,0.1)}
+.cmds-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:10px;text-transform:uppercase}
+.cmd-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cmd-chip{padding:7px 10px;border-radius:8px;border:0.5px solid rgba(0,180,255,0.12);background:rgba(0,180,255,0.04);font-size:11px;color:rgba(208,220,234,0.6);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.cmd-chip:hover{background:rgba(0,180,255,0.1);color:#c8ddf0;border-color:rgba(0,180,255,0.3)}
+.cmd-chip i{font-size:13px;color:rgba(0,180,255,0.5)}
+
+.news-mini{padding:14px 20px;flex:1;overflow:hidden}
+.news-mini-label{font-size:10px;letter-spacing:1.5px;color:rgba(0,180,255,0.4);margin-bottom:10px;text-transform:uppercase}
+.news-item-mini{padding:8px 0;border-bottom:0.5px solid rgba(0,180,255,0.07);font-size:12px;color:rgba(208,220,234,0.65);line-height:1.4;display:flex;gap:8px}
+.news-item-mini:last-child{border-bottom:none}
+.news-num{font-size:10px;color:rgba(0,180,255,0.3);font-family:var(--font-mono);flex-shrink:0;padding-top:2px}
+
+.wake-toggle{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-top:0.5px solid rgba(0,180,255,0.1)}
+.toggle-track{width:44px;height:24px;border-radius:12px;background:rgba(0,180,255,0.1);border:1px solid rgba(0,180,255,0.2);cursor:pointer;transition:all 0.3s;position:relative;flex-shrink:0}
+.toggle-track.on{background:rgba(0,180,255,0.25);border-color:#00b4ff}
+.toggle-thumb{width:18px;height:18px;border-radius:50%;background:rgba(0,180,255,0.4);position:absolute;top:2px;left:2px;transition:all 0.3s}
+.toggle-track.on .toggle-thumb{left:22px;background:#00b4ff}
+.toggle-lbl{font-size:11px;color:rgba(208,220,234,0.45);letter-spacing:1px}
+.toggle-lbl.on{color:rgba(0,180,255,0.8)}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">J.A.R.V.I.S voice assistant with wake word detection, speech recognition, and AI responses</h2>
+
+<div class="jv">
+
+<div class="topbar">
+  <div class="logo">
+    <div class="arc" id="arc-ring"><i class="ti ti-cpu" aria-hidden="true"></i></div>
+    <div>
+      <div class="logo-name">J.A.R.V.I.S</div>
+      <div class="logo-sub">voice command active</div>
+    </div>
+  </div>
+  <div class="topright">
+    <div class="sbar">
+      <div class="sdot" id="sdot"></div>
+      <div class="stxt" id="stxt">STANDBY</div>
+    </div>
+    <div class="clk" id="clk">--:-- --</div>
+  </div>
+</div>
+
+<div class="main-grid">
+
+<div class="left">
+  <div class="voice-center">
+    <div class="orb-wrap">
+      <div class="orb-ring r1 spin"></div>
+      <div class="orb-ring r2 spin2"></div>
+      <div class="orb-ring r3"></div>
+      <div class="orb" id="main-orb" onclick="toggleListen()" title="Click to activate voice">
+        <i class="ti ti-microphone" id="orb-icon" aria-hidden="true"></i>
+      </div>
+    </div>
+    <div class="wave-bars" id="wave-bars">
+      <div class="bar" style="height:4px"></div>
+      <div class="bar" style="height:6px"></div>
+      <div class="bar" style="height:4px"></div>
+      <div class="bar" style="height:8px"></div>
+      <div class="bar" style="height:4px"></div>
+      <div class="bar" style="height:6px"></div>
+      <div class="bar" style="height:4px"></div>
+      <div class="bar" style="height:5px"></div>
+    </div>
+    <div class="status-label" id="status-lbl">click orb to activate</div>
+    <div class="hotword-hint">Say <span>"Hey Jarvis"</span> to wake<br>or click the orb directly</div>
+  </div>
+
+  <div class="transcript-box">
+    <div class="transcript-label"><i class="ti ti-ear" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>you said</div>
+    <div class="transcript-text" id="transcript-text">Waiting for voice input...</div>
+  </div>
+
+  <div class="response-box">
+    <div class="resp-label"><i class="ti ti-robot" aria-hidden="true"></i>jarvis</div>
+    <div class="resp-text" id="resp-text">Online and ready, Boss. Click the orb or say "Hey Jarvis" to begin.</div>
+  </div>
+
+  <div class="wake-toggle">
+    <div class="toggle-track" id="wake-toggle" onclick="toggleWake()">
+      <div class="toggle-thumb"></div>
+    </div>
+    <div class="toggle-lbl" id="wake-lbl">WAKE WORD OFF</div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="cmds-section">
+    <div class="cmds-label">voice commands</div>
+    <div class="cmd-grid">
+      <div class="cmd-chip" onclick="simulateCmd('What is the weather today?')"><i class="ti ti-cloud" aria-hidden="true"></i>"What's the weather?"</div>
+      <div class="cmd-chip" onclick="simulateCmd('Show me the latest AI news')"><i class="ti ti-news" aria-hidden="true"></i>"Latest AI news"</div>
+      <div class="cmd-chip" onclick="simulateCmd('What tasks do I have today?')"><i class="ti ti-checkbox" aria-hidden="true"></i>"My tasks today"</div>
+      <div class="cmd-chip" onclick="simulateCmd('Play the AI podcast')"><i class="ti ti-headphones" aria-hidden="true"></i>"Play podcast"</div>
+      <div class="cmd-chip" onclick="simulateCmd('What time is it?')"><i class="ti ti-clock" aria-hidden="true"></i>"What time is it?"</div>
+      <div class="cmd-chip" onclick="simulateCmd('Give me an AI news briefing')"><i class="ti ti-speakerphone" aria-hidden="true"></i>"AI briefing"</div>
+    </div>
+  </div>
+
+  <div class="news-mini" id="news-mini">
+    <div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>
+    <div style="font-size:12px;color:rgba(0,180,255,0.4)" class="loading-pulse">Fetching AI headlines...</div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let synth = window.speechSynthesis;
+let isListening = false;
+let isSpeaking = false;
+let wakeActive = false;
+let wakeRecog = null;
+let conversationHistory = [];
+
+const tasks = [
+  "Review Claude API integration PR",
+  "Read the Anthropic Constitution AI paper",
+  "30 minute walk or gym session",
+  "Prepare AI project demo slides",
+  "Check in with team on standup notes"
+];
+
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes().toString().padStart(2,"0");
+  const ap = h >= 12 ? "PM" : "AM";
+  document.getElementById("clk").textContent = `${(h%12)||12}:${m} ${ap}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+function setUIState(state) {
+  const orb = document.getElementById("main-orb");
+  const icon = document.getElementById("orb-icon");
+  const lbl = document.getElementById("status-lbl");
+  const arc = document.getElementById("arc-ring");
+  const sdot = document.getElementById("sdot");
+  const stxt = document.getElementById("stxt");
+  const bars = document.querySelectorAll(".bar");
+
+  orb.className = "orb";
+  arc.className = "arc";
+  lbl.className = "status-label";
+  bars.forEach(b => { b.className = "bar"; b.style.height = "4px"; });
+
+  if (state === "listening") {
+    orb.classList.add("listening");
+    arc.classList.add("listening");
+    lbl.classList.add("listening");
+    lbl.textContent = "listening...";
+    icon.className = "ti ti-microphone";
+    sdot.classList.add("on");
+    stxt.classList.add("on");
+    stxt.textContent = "LISTENING";
+    bars.forEach(b => b.classList.add("active"));
+  } else if (state === "thinking") {
+    lbl.textContent = "thinking...";
+    icon.className = "ti ti-brain";
+    sdot.classList.add("on");
+    stxt.classList.add("on");
+    stxt.textContent = "PROCESSING";
+  } else if (state === "speaking") {
+    orb.classList.add("speaking");
+    arc.classList.add("speaking");
+    lbl.classList.add("speaking");
+    lbl.textContent = "speaking...";
+    icon.className = "ti ti-volume";
+    sdot.classList.add("on");
+    stxt.classList.add("on");
+    stxt.textContent = "SPEAKING";
+    bars.forEach(b => b.classList.add("speaking-bar"));
+  } else {
+    lbl.textContent = wakeActive ? "wake word active" : "click orb to activate";
+    icon.className = "ti ti-microphone";
+    stxt.textContent = wakeActive ? "WAKE ACTIVE" : "STANDBY";
+    if (wakeActive) { sdot.classList.add("on"); stxt.classList.add("on"); }
+    else { sdot.className = "sdot"; stxt.className = "stxt"; }
+  }
+}
+
+function speak(text, onEnd) {
+  if (!synth) { if (onEnd) onEnd(); return; }
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 1.05;
+  utt.pitch = 0.85;
+  utt.volume = 1;
+  const voices = synth.getVoices();
+  const preferred = voices.find(v =>
+    v.name.includes("Google UK English Male") ||
+    v.name.includes("Daniel") ||
+    v.name.includes("David") ||
+    (v.lang === "en-GB" && v.name.includes("Male"))
+  ) || voices.find(v => v.lang && v.lang.startsWith("en"));
+  if (preferred) utt.voice = preferred;
+  utt.onend = () => { isSpeaking = false; if (onEnd) onEnd(); };
+  isSpeaking = true;
+  setUIState("speaking");
+  document.getElementById("resp-text").textContent = text;
+  synth.speak(utt);
+}
+
+async function askJarvis(userText) {
+  setUIState("thinking");
+  document.getElementById("transcript-text").textContent = userText;
+  document.getElementById("transcript-text").classList.add("active");
+  document.getElementById("resp-text").textContent = "Processing...";
+
+  const lower = userText.toLowerCase();
+
+  if (lower.includes("time")) {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    const ap = h >= 12 ? "PM" : "AM";
+    const reply = `The time is ${(h%12)||12}:${m.toString().padStart(2,"0")} ${ap}, Boss.`;
+    speak(reply, () => setUIState("idle"));
+    return;
+  }
+
+  if (lower.includes("task") || lower.includes("todo") || lower.includes("today")) {
+    const reply = `You have ${tasks.length} tasks today, Boss. They are: ${tasks.slice(0,3).join(", ")}, and ${tasks.length - 3} more.`;
+    speak(reply, () => setUIState("idle"));
+    return;
+  }
+
+  conversationHistory.push({ role: "user", content: userText });
+
+  try {
+    const now = new Date();
+    const sysPrompt = `You are J.A.R.V.I.S, a sophisticated AI personal assistant modelled after the Iron Man AI. 
+You speak with intelligence, brevity and a touch of dry wit. Always call the user "Boss". 
+Current time: ${now.toLocaleTimeString()}. Location: Balakong, Selangor, Malaysia.
+Today's tasks: ${tasks.join("; ")}.
+Keep responses under 3 sentences — you are speaking aloud, not writing. Be helpful, sharp, and never verbose.`;
+
+    const tools = lower.includes("weather") || lower.includes("news") || lower.includes("briefing") || lower.includes("latest")
+      ? [{ type: "web_search_20250305", name: "web_search" }]
+      : [];
+
+    const body = { model: "claude-sonnet-4-6", max_tokens: 1000, system: sysPrompt, messages: conversationHistory };
+    if (tools.length) body.tools = tools;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    const reply = data.content.filter(c => c.type === "text").map(c => c.text).join(" ").trim()
+      || "I encountered a systems issue, Boss. Please try again.";
+
+    conversationHistory.push({ role: "assistant", content: reply });
+    if (conversationHistory.length > 12) conversationHistory = conversationHistory.slice(-12);
+
+    speak(reply, () => setUIState("idle"));
+  } catch(e) {
+    const fallback = "I seem to be having trouble connecting to my systems, Boss. Please check your connection.";
+    speak(fallback, () => setUIState("idle"));
+  }
+}
+
+function startListening() {
+  if (!SpeechRecognition) {
+    document.getElementById("resp-text").textContent = "Speech recognition is not supported in this browser. Please use Chrome or Edge, Boss.";
+    return;
+  }
+  if (recog) recog.stop();
+  recog = new SpeechRecognition();
+  recog.lang = "en-US";
+  recog.interimResults = true;
+  recog.maxAlternatives = 1;
+  recog.continuous = false;
+
+  recog.onstart = () => { isListening = true; setUIState("listening"); };
+
+  recog.onresult = (e) => {
+    const transcript = Array.from(e.results).map(r => r[0].transcript).join("");
+    document.getElementById("transcript-text").textContent = transcript;
+    if (e.results[e.results.length - 1].isFinal) {
+      isListening = false;
+      recog.stop();
+      askJarvis(transcript);
+    }
+  };
+
+  recog.onerror = (e) => {
+    isListening = false;
+    setUIState("idle");
+    if (e.error !== "aborted") {
+      document.getElementById("resp-text").textContent = `Microphone error: ${e.error}. Please allow microphone access, Boss.`;
+    }
+  };
+
+  recog.onend = () => {
+    isListening = false;
+    if (!isSpeaking) setUIState("idle");
+  };
+
+  recog.start();
+}
+
+function stopListening() {
+  if (recog) recog.stop();
+  isListening = false;
+  setUIState("idle");
+}
+
+function toggleListen() {
+  if (isListening) { stopListening(); return; }
+  if (isSpeaking) { synth.cancel(); isSpeaking = false; }
+  startListening();
+}
+
+function simulateCmd(text) {
+  if (isListening) stopListening();
+  if (isSpeaking) { synth.cancel(); isSpeaking = false; }
+  setUIState("listening");
+  setTimeout(() => {
+    document.getElementById("transcript-text").textContent = text;
+    askJarvis(text);
+  }, 400);
+}
+
+function toggleWake() {
+  wakeActive = !wakeActive;
+  const track = document.getElementById("wake-toggle");
+  const lbl = document.getElementById("wake-lbl");
+  if (wakeActive) {
+    track.classList.add("on");
+    lbl.classList.add("on");
+    lbl.textContent = "WAKE WORD ON";
+    startWakeWordListener();
+    speak("Wake word detection enabled. Say Hey Jarvis to activate me, Boss.", () => setUIState("idle"));
+  } else {
+    track.classList.remove("on");
+    lbl.classList.remove("on");
+    lbl.textContent = "WAKE WORD OFF";
+    if (wakeRecog) { wakeRecog.stop(); wakeRecog = null; }
+    setUIState("idle");
+  }
+}
+
+function startWakeWordListener() {
+  if (!SpeechRecognition) return;
+  if (wakeRecog) wakeRecog.stop();
+  wakeRecog = new SpeechRecognition();
+  wakeRecog.continuous = true;
+  wakeRecog.interimResults = true;
+  wakeRecog.lang = "en-US";
+
+  wakeRecog.onresult = (e) => {
+    const heard = Array.from(e.results).map(r => r[0].transcript).join(" ").toLowerCase();
+    if (heard.includes("hey jarvis") || heard.includes("jarvis") || heard.includes("hey javis")) {
+      wakeRecog.stop();
+      if (isSpeaking) { synth.cancel(); isSpeaking = false; }
+      setTimeout(() => {
+        speak("Yes Boss?", () => {
+          setUIState("idle");
+          setTimeout(() => {
+            startListening();
+            if (wakeActive) setTimeout(startWakeWordListener, 3000);
+          }, 300);
+        });
+      }, 200);
+    }
+  };
+
+  wakeRecog.onend = () => {
+    if (wakeActive && !isListening) {
+      setTimeout(() => { if (wakeActive) startWakeWordListener(); }, 500);
+    }
+  };
+
+  try { wakeRecog.start(); } catch(e) {}
+}
+
+async function loadNews() {
+  const el = document.getElementById("news-mini");
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 600,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: "Search for the 4 most recent AI news headlines today. Return ONLY a JSON array of 4 strings, each a headline under 70 chars. No markdown, no extra text." }]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content.filter(c => c.type === "text").map(c => c.text).join("");
+    const clean = txt.replace(/```json|```/g,"").trim();
+    const items = JSON.parse(clean);
+    el.innerHTML = `<div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>` +
+      items.map((n,i) => `<div class="news-item-mini"><span class="news-num">0${i+1}</span><span>${n}</span></div>`).join("");
+  } catch(e) {
+    const fallback = ["GPT-5 releases with enhanced reasoning capabilities","Google Gemini Ultra sets new benchmark records","EU AI Act enforcement rules now finalized","Anthropic releases new Constitutional AI research"];
+    el.innerHTML = `<div class="news-mini-label"><i class="ti ti-rss" aria-hidden="true" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>live feed</div>` +
+      fallback.map((n,i) => `<div class="news-item-mini"><span class="news-num">0${i+1}</span><span>${n}</span></div>`).join("");
+  }
+}
+
+synth && synth.addEventListener && synth.addEventListener("voiceschanged", () => {});
+loadNews();
+setUIState("idle");
+</script>
